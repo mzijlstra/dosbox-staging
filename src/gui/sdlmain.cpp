@@ -210,6 +210,8 @@ struct SDL_Block {
 	// state of alt-keys for certain special handlings
 	SDL_EventType laltstate;
 	SDL_EventType raltstate;
+	int restore_pos_x = SDL_WINDOWPOS_UNDEFINED;
+	int restore_pos_y = SDL_WINDOWPOS_UNDEFINED;
 };
 
 static SDL_Block sdl;
@@ -442,6 +444,7 @@ static SDL_Window * GFX_SetSDLWindowMode(Bit16u width, Bit16u height, bool fulls
 		 * 2. It's a bit less glitchy to set a custom display mode for a
 		 * full screen, albeit it's still not perfect (at least on X11).
 		 */
+		LOG_MSG(">> Create Window\n");
 		sdl.window = SDL_CreateWindow(
 			"",
 			SDL_WINDOWPOS_UNDEFINED_DISPLAY(sdl.displayNumber),
@@ -470,6 +473,16 @@ static SDL_Window * GFX_SetSDLWindowMode(Bit16u width, Bit16u height, bool fulls
 	 * On Android, desktop res is the only way.
 	 */
 	if (fullscreen) {
+		if (sdl.restore_pos_x != SDL_WINDOWPOS_UNDEFINED) {
+			LOG_MSG(">> go full %d ? %d\n", sdl.restore_pos_x, SDL_WINDOWPOS_UNDEFINED);
+			SDL_GetWindowPosition(sdl.window,
+			                      &sdl.restore_pos_x,
+			                      &sdl.restore_pos_y);
+		} else {
+			LOG_MSG(">> go full (center)\n");
+			sdl.restore_pos_x = SDL_WINDOWPOS_CENTERED;
+			sdl.restore_pos_y = SDL_WINDOWPOS_CENTERED;
+		}
 		SDL_DisplayMode displayMode;
 		SDL_GetWindowDisplayMode(sdl.window, &displayMode);
 		displayMode.w = width;
@@ -478,8 +491,11 @@ static SDL_Window * GFX_SetSDLWindowMode(Bit16u width, Bit16u height, bool fulls
 		SDL_SetWindowFullscreen(sdl.window,
 		                        sdl.desktop.full.display_res ? SDL_WINDOW_FULLSCREEN_DESKTOP : SDL_WINDOW_FULLSCREEN);
 	} else {
+		LOG_MSG(">> go unfull %d ? %d\n", sdl.restore_pos_x, SDL_WINDOWPOS_UNDEFINED);
+
 		SDL_SetWindowFullscreen(sdl.window, 0);
 		SDL_SetWindowSize(sdl.window, width, height);
+		SDL_SetWindowPosition(sdl.window, sdl.restore_pos_x, sdl.restore_pos_y);
 	}
 	// Maybe some requested fullscreen resolution is unsupported?
 finish:
