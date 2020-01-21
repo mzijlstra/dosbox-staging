@@ -294,11 +294,11 @@ bool CDROM_Interface_Image::GetAudioTracks(int& start_track_num, int& lead_out_n
 	// Guard: A valid CD has atleast two tracks: the first plus the lead-out, so bail
 	//        out if we have fewer than 2 tracks
 	if (tracks.size() < MIN_REDBOOK_TRACKS) {
-#ifdef DEBUG
+//#ifdef DEBUG
 		LOG_MSG("CDROM: GetAudioTracks: game wanted to dump track "
-		        "metadata but our CD image has too few tracks: %u",
-		        static_cast<unsigned int>(tracks.size()));
-#endif
+		        "metadata but our CD image has too few tracks: %zu",
+		        tracks.size());
+//#endif
 		return false;
 	}
 	start_track_num = tracks.begin()->number;
